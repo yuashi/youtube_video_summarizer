@@ -1,8 +1,8 @@
 import re
-from youtube_transcript_api import YouTubeTranscriptApi
+import streamlit as st
+from youtube_transcript_api import YouTubeTranscriptApi, WebshareProxyConfig
 
 def get_youtube_id(url: str) -> str:
-    """Extract 11-character video ID from various YouTube URL formats."""
     pattern = r"(?:v=|\/|be\/|embed\/)([a-zA-Z0-9_-]{11})"
     match = re.search(pattern, url)
     if match:
@@ -10,15 +10,20 @@ def get_youtube_id(url: str) -> str:
     raise ValueError("Invalid YouTube URL")
 
 def get_transcript(url: str) -> str:
-    """Fetch official or auto-generated captions from YouTube."""
     video_id = get_youtube_id(url)
     
-    # Instantiate API client
-    ytt = YouTubeTranscriptApi()
-    
-    # Try fetching English captions (or fell back to auto-generated)
+    # Configure rotating proxies (replace with your proxy credentials or load from st.secrets)
+    proxy_username = st.secrets.get("PROXY_USER", "")
+    proxy_password = st.secrets.get("PROXY_PASS", "")
+
+    if proxy_username and proxy_password:
+        proxy_config = WebshareProxyConfig(
+            username=proxy_username,
+            password=proxy_password
+        )
+        ytt = YouTubeTranscriptApi(proxy_config=proxy_config)
+    else:
+        ytt = YouTubeTranscriptApi()
+
     transcript_list = ytt.fetch(video_id, languages=['en'])
-    
-    # Combine individual caption snippets into continuous text
-    full_text = " ".join([entry['text'] for entry in transcript_list])
-    return full_text
+    return " ".join([entry['text'] for entry in transcript_list])
