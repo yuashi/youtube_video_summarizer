@@ -1,9 +1,10 @@
 import streamlit as st
 import os
+import traceback
 from app.downloader import download_audio
 from app.utils import chunk_text
-from app.transcriber import load_whisper_model,transcribe_audio
-from app.summarizer import load_summarizer,summarize_text
+from app.transcriber import load_whisper_model, transcribe_audio
+from app.summarizer import load_summarizer, summarize_text
 
 st.set_page_config(page_title="YouTube Summarizer", layout="wide")
 
@@ -35,8 +36,11 @@ if st.button("Generate Summary"):
 
             st.subheader("📄 Summary")
             st.write(summary)
-        except:
-            st.error("An error occurred. Please try again.")
+            
+        except Exception as e:
+            st.error(f"Error: {e}")
+            st.code(traceback.format_exc())  # Prints full stack trace for easy copy-pasting
+            
         finally:
             if audio_file and os.path.exists(audio_file):
                 os.remove(audio_file)
