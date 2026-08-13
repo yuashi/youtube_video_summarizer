@@ -1,18 +1,11 @@
-import whisper
-import torch
 import streamlit as st
-
-# print(torch.__version__)
-# print(torch.cuda.is_available())
-# print(torch.cuda.get_device_name(0) if torch.cuda.is_available() else "No GPU")
+import whisper
 
 @st.cache_resource
-def load_whisper_model(model_size="base"):
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    model = whisper.load_model(model_size).to(device)
-    return model
+def load_whisper_model():
+    # "tiny" or "base" uses ~150-300MB RAM compared to >1GB for larger variants
+    return whisper.load_model("tiny")
 
-
-def transcribe_audio(file_path,model):
-    result = model.transcribe(file_path,task="translate")
+def transcribe_audio(audio_path, model):
+    result = model.transcribe(audio_path)
     return result["text"]
